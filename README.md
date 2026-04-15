@@ -1,4 +1,4 @@
-# wasteofspacefactions
+# Waste of Space faction info repo
 My understanding (Crucifix) of Waste of Space current factions (feel free to correct me (and please do))
 
 ## Added factions
