@@ -150,7 +150,7 @@
 
     async function init() {
       try {
-        const data = await loadJSON('https://pastebin.com/raw/gewuYbma');
+        const data = await loadJSON('https://api.allorigins.win/raw?url=https://pastebin.com/raw/gewuYbma');
 
         renderWars(data.wars || []);
         renderAlliances(data.alliances || []);
