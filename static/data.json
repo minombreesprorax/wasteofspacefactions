@@ -1,0 +1,60 @@
+{
+    "factions": [
+        {
+            "name": "ZAIA Enterprise",
+            "shortened": "ZAIA",
+            "leaderboard": 1,
+            "description": "Top 1 Faction in the Faction Hub. A powerful corporation led by Alvarez, and management by Crucifix. They have a large amount of resources and are known for their aggressive expansion and dominance in the faction hub.",
+            "members": [
+                ["Alvarez", "Leader"],
+                ["Crucifix", "Right Hand Man"],
+                ["Benjamind", "UNSC Leader"]
+            ],
+            "resources": [
+                "Ed", "Lee"
+            ],
+            "threat_level": 10
+        },
+        {
+            "name": "The Goober Federation Faction",
+            "shortened": "TGF",
+            "leaderboard": 5,
+            "description": "To be written.",
+            "members": [
+            ],
+            "resources": [
+            ],
+            "threat_level": 7
+        }
+    ],
+    "wars": [
+        {
+            "factions": [
+                [
+                    "ZAIA Enterprise",
+                    "TGF"
+                ],
+                "ESpace"
+            ],
+            "status": "Active",
+            "start": "June 1st 2026",
+            "end": "!NOW",
+            "reason": "ESpace including a pedophile in their members.",
+            "conclusion": "Pending"
+        }
+    ],
+    "alliances": [
+        {
+            "name": "ZAIA Enterprise Interchange Alliance",
+            "type": "Union",
+            "members": [
+                "ZAIA Enterprise",
+                "SDA",
+                "TGF",
+                "Among us Industries",
+                "Eclipse corporation"
+            ],
+            "reason": "To interchange information and resources between the factions included."
+        }
+    ]
+}

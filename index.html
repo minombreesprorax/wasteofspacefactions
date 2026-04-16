@@ -1,9 +1,166 @@
+<!-- Waste of Space Faction Chart; Published on Github Pages. -->
 <!DOCTYPE html>
 <html>
   <head>
     <title>Waste of Space Faction Chart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
   </head>
   <body>
-    <h1>Work in progress.</h1>
+    <div class="hero-flex">
+      <h1 class="hero-title">Waste of Space Faction Chart</h1>
+      <p class="hero-subtitle">A chart of the factions in the Waste of Space universe, and their relationships to each other.</p>
+    </div>
+    <h1>IMPORTANT: This is unfinished and mostly placeholders, do not take information realistically until it's finished enough. If you are a faction leader, hit me up to add your faction and its information.</h1>
+    <h2 class="section-header">Ongoing Wars</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Factions involved (Parenthesis = Allied for the War)</th>
+          <th>War Status</th>
+          <th>Time</th>
+          <th>Reason</th>
+          <th>Conclusion</th>
+        </tr>
+      </thead>
+      <tbody id="wars-table">
+      </tbody>
+    </table>
+    <h2 class="section-header">Alliances</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Alliance Name</th>
+          <th>Type</th>
+          <th>Members</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="alliances-table">
+      </tbody>
+    </table>
+    <h2 class="section-header">Dynamic Map</h2>
+    <div class="dynamic-map">
+      <!-- A map with nodes and connections that float and can be moved around and individual nodes can be clicked for more information. Nodes being factions (blue), wars (red), alliances (green), AIWs (yellow), and rouge/unofficial factions (purple). -->
+      <p class="placeholder">Not implemented yet.</p>
+    </div>
+    <script>
+    /* -----------------------------
+      1. DATA LOADER (generic)
+    ------------------------------ */
+    async function loadJSON(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`Failed to load ${path}`);
+      return res.json();
+    }
+
+    /* -----------------------------
+      2. FORMATTERS (pure functions)
+    ------------------------------ */
+
+    // AIW + faction formatting
+    function formatFactions(factions) {
+      return factions.map(group => {
+        if (Array.isArray(group)) {
+          return `(${group.join(', ')})`;
+        }
+        return group;
+      }).join(', ');
+    }
+
+    // Date handler (centralized so you don't repeat it everywhere)
+    function formatEndDate(endValue) {
+      if (endValue !== '!NOW') return endValue;
+
+      const now = new Date();
+      return now.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) + ' (Ongoing)';
+    }
+
+    /* -----------------------------
+      3. GENERIC TABLE RENDERER
+    ------------------------------ */
+
+    function renderTable(tbodyId, rows, rowMapper) {
+      const tbody = document.getElementById(tbodyId);
+      tbody.innerHTML = ''; // prevents duplicates on reload
+
+      const fragment = document.createDocumentFragment();
+
+      rows.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = rowMapper(item);
+        fragment.appendChild(tr);
+      });
+
+      tbody.appendChild(fragment);
+    }
+
+    /* -----------------------------
+      4. DOMAIN LOGIC - WARS
+    ------------------------------ */
+
+    function renderWars(wars) {
+      renderTable('wars-table', wars, war => {
+        return `
+          <td>${formatFactions(war.factions)}</td>
+          <td>${war.status}</td>
+          <td>${war.start} - ${formatEndDate(war.end)}</td>
+          <td>${war.reason}</td>
+          <td>${war.conclusion}</td>
+        `;
+      });
+    }
+
+    /* -----------------------------
+      5. DOMAIN LOGIC - ALLIANCES
+    ------------------------------ */
+
+    function formatAllianceMembers(members) {
+      return members.join(', ');
+    }
+
+    function renderAlliances(alliances) {
+      renderTable('alliances-table', alliances, a => {
+        return `
+          <td>${a.name}</td>
+          <td>${a.type}</td>
+          <td>${formatAllianceMembers(a.members)}</td>
+          <td>${a.reason}</td>
+        `;
+      });
+    }
+
+    /* -----------------------------
+      6. MAIN ENTRY POINT
+    ------------------------------ */
+
+    async function init() {
+      try {
+        const data = await loadJSON('./static/data.json');
+
+        renderWars(data.wars || []);
+        renderAlliances(data.alliances || []);
+
+      } catch (err) {
+        console.error('Failed to initialize page:', err);
+      }
+    }
+
+    init();
+    </script>
+    <h2 class="section-header">Contributors</h2>
+    <ul>
+    <li>Crucifix (Maker)</li>
+    <li>Alvarez (Information + Leader of ZAIA Enterprise)</li>
+    </ul>
   </body>
 </html>
