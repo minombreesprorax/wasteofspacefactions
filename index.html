@@ -53,15 +53,16 @@
     /* -----------------------------
       1. DATA LOADER (generic)
     ------------------------------ */
-    async function loadJSON(path) {
-      try {
-        const res = await fetch(path);
-        if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
-        return res.json();
-      } catch (error) {
-        console.error('Error fetching from Pastebin:', error);
-        throw error;
+    async function loadJSON() {
+      const response = await fetch(
+        'https://waste-of-space-faction-chart-default-rtdb.firebaseio.com/.json'
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      return await response.json();
     }
 
     /* -----------------------------
