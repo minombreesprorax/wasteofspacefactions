@@ -1,172 +1,450 @@
 <!-- Waste of Space Faction Chart; Published on Github Pages. -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Waste of Space Faction Chart</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/style.css">
-  </head>
-  <body>
-    <div class="hero-flex">
-      <h1 class="hero-title">Waste of Space Faction Chart</h1>
-      <p class="hero-subtitle">A chart of the factions in the Waste of Space universe, and their relationships to each other.</p>
-    </div>
-    <h1>IMPORTANT: This is unfinished and mostly placeholders, do not take information realistically until it's finished enough. If you are a faction leader, hit me up to add your faction and its information.</h1>
-    <h2 class="section-header">Ongoing Wars</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Factions involved (Parenthesis = Allied for the War)</th>
-          <th>War Status</th>
-          <th>Time</th>
-          <th>Reason</th>
-          <th>Conclusion</th>
-        </tr>
-      </thead>
-      <tbody id="wars-table">
-      </tbody>
-    </table>
-    <h2 class="section-header">Alliances</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Alliance Name</th>
-          <th>Type</th>
-          <th>Members</th>
-          <th>Reason</th>
-        </tr>
-      </thead>
-      <tbody id="alliances-table">
-      </tbody>
-    </table>
-    <h2 class="section-header">Dynamic Map</h2>
-    <div class="dynamic-map">
-      <!-- A map with nodes and connections that float and can be moved around and individual nodes can be clicked for more information. Nodes being factions (blue), wars (red), alliances (green), AIWs (yellow), and rouge/unofficial factions (purple). -->
-      <p class="placeholder">Not implemented yet.</p>
-    </div>
-    <script>
-    /* -----------------------------
-      1. DATA LOADER (generic)
-    ------------------------------ */
-    async function loadJSON() {
-      const response = await fetch(
-        'https://waste-of-space-faction-chart-default-rtdb.firebaseio.com/.json'
-      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+<head>
+  <title>Waste of Space Faction Chart</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+  <!-- Cytoscape -->
+  <script src="https://unpkg.com/cytoscape@3.25.0/dist/cytoscape.min.js"></script>
+</head>
+
+<body>
+  <div class="hero-flex">
+    <h1 class="hero-title">Waste of Space Faction Chart</h1>
+    <p class="hero-subtitle">A chart of the factions in the Waste of Space universe, and their relationships to each
+      other.</p>
+  </div>
+  <h1>IMPORTANT: This is unfinished and mostly placeholders, do not take information realistically until it's finished
+    enough. If you are a faction leader, hit me up to add your faction and its information.</h1>
+  <p><a href="data.html">View raw data tables</a></p>
+  <h2 class="section-header">Dynamic Map</h2>
+  <div class="nodemap-container">
+    <div id="cy"></div>
+    <div id="info-panel" class="info-panel hidden">
+      <button id="close-panel" class="close-btn">×</button>
+      <div id="panel-content"></div>
+    </div>
+  </div>
+  <h2 class="section-header">Contributors</h2>
+  <ul>
+    <li>Crucifix (Maker)</li>
+    <li>Alvarez (Information + Leader of ZAIA Enterprise)</li>
+  </ul>
+  <script>
+    /* ========================================
+       NODEMAP VISUALIZATION WITH CYTOSCAPE.JS
+       ======================================== */
+
+    let globalData = null;
+    let cy = null;
+    let nodeInfoMap = {};
+
+    async function loadData() {
+      try {
+        const response = await fetch('https://waste-of-space-faction-chart-default-rtdb.firebaseio.com/.json');
+        if (response.ok) return await response.json();
+      } catch (e) {
+        console.warn('Firebase fetch failed, trying local a.json');
       }
 
-      return await response.json();
+      try {
+        const response = await fetch('static/a.json');
+        if (response.ok) return await response.json();
+      } catch (e) {
+        console.error('Failed to load data:', e);
+        return null;
+      }
+
+      return null;
     }
 
-    /* -----------------------------
-      2. FORMATTERS (pure functions)
-    ------------------------------ */
+    function buildElements(data) {
+      const elements = [];
+      let edgeCount = 0;
+      nodeInfoMap = {};
 
-    // AIW + faction formatting
-    function formatFactions(factions) {
-      return factions.map(group => {
-        if (Array.isArray(group)) {
-          return `(${group.join(', ')})`;
+      // factions
+      data.factions.forEach(faction => {
+        const id = faction.id;
+
+        elements.push({
+          data: {
+            id,
+            label: faction.tag,
+            fullName: faction.name,
+            type: "faction",
+            size: 32 + faction.threat * 3
+          },
+          classes: "faction"
+        });
+
+        nodeInfoMap[id] = { type: "faction", data: faction };
+
+        const members = faction.members || [];
+        members.forEach(member => {
+          const pid = `player_${member.name}_${id}`;
+
+          elements.push({
+            data: {
+              id: pid,
+              label: member.name,
+              type: "player",
+              size: 16
+            },
+            classes: "player"
+          });
+
+          nodeInfoMap[pid] = {
+            type: "player",
+            data: {
+              playerName: member.name,
+              role: member.role,
+              faction: faction.name
+            }
+          };
+
+          elements.push({
+            data: {
+              id: `edge_${edgeCount++}`,
+              source: pid,
+              target: id
+            }
+          });
+        });
+      });
+
+      // wars
+      data.wars.forEach(war => {
+        elements.push({
+          data: {
+            id: war.id,
+            label: "WAR",
+            type: "war",
+            size: 32
+          },
+          classes: "war"
+        });
+
+        nodeInfoMap[war.id] = { type: "war", data: war };
+
+        war.sides.forEach((side, sideIndex) => {
+          if (Array.isArray(side) && side.length > 1) {
+            const aiwId = `aiw_${war.id}_${sideIndex}`;
+            elements.push({
+              data: {
+                id: aiwId,
+                label: 'AIW',
+                type: 'aiw',
+                size: 24
+              },
+              classes: 'aiw'
+            });
+            nodeInfoMap[aiwId] = { type: 'aiw', data: { war: war.id, factions: side } };
+
+            side.forEach(fid => {
+              elements.push({
+                data: {
+                  id: `edge_${edgeCount++}`,
+                  source: fid,
+                  target: aiwId
+                }
+              });
+            });
+
+            elements.push({
+              data: {
+                id: `edge_${edgeCount++}`,
+                source: aiwId,
+                target: war.id
+              }
+            });
+          } else {
+            const fid = Array.isArray(side) ? side[0] : side;
+            elements.push({
+              data: {
+                id: `edge_${edgeCount++}`,
+                source: fid,
+                target: war.id
+              }
+            });
+          }
+        });
+      });
+
+      // alliances
+      data.alliances.forEach(alliance => {
+        elements.push({
+          data: {
+            id: alliance.id,
+            label: alliance.name,
+            type: "alliance",
+            size: 32
+          },
+          classes: "alliance"
+        });
+
+        nodeInfoMap[alliance.id] = {
+          type: "alliance",
+          data: alliance
+        };
+
+        alliance.members.forEach(fid => {
+          elements.push({
+            data: {
+              id: `edge_${edgeCount++}`,
+              source: fid,
+              target: alliance.id
+            }
+          });
+        });
+      });
+
+      return elements;
+    }
+
+    function initCytoscape(elements) {
+      cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements,
+        minZoom: 0.3,
+        maxZoom: 3,
+        wheelSensitivity: 0.1,
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'font-size': 8,
+              'min-zoomed-font-size': 4,
+
+              'text-valign': 'center',
+              'text-halign': 'center',
+
+              'color': '#fff',
+              'text-outline-color': '#000',
+              'text-outline-width': 0.5,
+
+              'text-wrap': 'wrap',
+              'text-max-width': 'data(size)',
+
+              'width': 'data(size)',
+              'height': 'data(size)',
+
+              'border-color': '#ffffff',
+              'border-width': 0.5
+            }
+          },
+          {
+            selector: '.player',
+            style: {
+              'background-color': '#fbbf24',
+              'shape': 'rectangle',
+              'padding': '5px',
+              'width': 'label',
+              'height': 'label',
+              'text-wrap': 'wrap',
+              'text-max-width': 80,
+              'text-outline-color': '#000',
+              'text-outline-width': 0.5,
+              'font-size': 7
+            }
+          },
+          {
+            selector: '.faction',
+            style: {
+              'background-color': '#3b82f6'
+            }
+          },
+          {
+            selector: '.war',
+            style: {
+              'background-color': '#ef4444'
+            }
+          },
+          {
+            selector: '.alliance',
+            style: {
+              'background-color': '#10b981'
+            }
+          },
+          {
+            selector: '.aiw',
+            style: {
+              'background-color': '#a855f7',
+              'shape': 'diamond'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 2,
+              'line-color': '#9ca3af',
+              'curve-style': 'bezier',
+              'target-arrow-shape': 'none'
+            }
+          },
+          {
+            selector: ':selected',
+            style: {
+              'border-color': '#ffffff',
+              'border-width': 4
+            }
+          }
+        ],
+        layout: {
+          name: 'cose',
+          directed: false,
+          nodeDimensionsIncludeLabels: true,
+          animate: true,
+          animationDuration: 500,
+          padding: 50,
+          nodeSpacing: (node) => 15,
+          friction: 0.95,
+          repulsiveForce: 50,
+          attractiveForce: 5,
+          gravity: 0.05,
+          numIter: 500,
+          randomize: false
         }
-        return group;
-      }).join(', ');
-    }
-
-    // Date handler (centralized so you don't repeat it everywhere)
-    function formatEndDate(endValue) {
-      if (endValue !== '!NOW') return endValue;
-
-      const now = new Date();
-      return now.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }) + ' (Ongoing)';
-    }
-
-    /* -----------------------------
-      3. GENERIC TABLE RENDERER
-    ------------------------------ */
-
-    function renderTable(tbodyId, rows, rowMapper) {
-      const tbody = document.getElementById(tbodyId);
-      tbody.innerHTML = ''; // prevents duplicates on reload
-
-      const fragment = document.createDocumentFragment();
-
-      rows.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = rowMapper(item);
-        fragment.appendChild(tr);
       });
 
-      tbody.appendChild(fragment);
+      // Fit viewport once on initial load
+      cy.fit(50);
+
+      cy.on('tap', 'node', (event) => {
+        const node = event.target;
+        const info = nodeInfoMap[node.id()];
+        if (info) {
+          showInfoPanel(node.id(), info);
+        } else {
+          showInfoPanel(node.id(), { type: node.data('type'), data: node.data() });
+        }
+      });
+
+      cy.on('tap', (event) => {
+        if (event.target === cy) {
+          hideInfoPanel();
+        }
+      });
+
+      cy.fit(40);
     }
 
-    /* -----------------------------
-      4. DOMAIN LOGIC - WARS
-    ------------------------------ */
+    function formatDateWithSuffix(dateStr) {
+      const date = dateStr ? new Date(dateStr) : new Date();
+      if (Number.isNaN(date.getTime())) return dateStr || 'Unknown';
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      const day = date.getDate();
+      const suffix = (day % 10 === 1 && day !== 11) ? 'st'
+        : (day % 10 === 2 && day !== 12) ? 'nd'
+        : (day % 10 === 3 && day !== 13) ? 'rd'
+        : 'th';
+      return `${month} ${day}${suffix}, ${date.getFullYear()}`;
+    }
 
-    function renderWars(wars) {
-      renderTable('wars-table', wars, war => {
-        return `
-          <td>${formatFactions(war.factions)}</td>
-          <td>${war.status}</td>
-          <td>${war.start} - ${formatEndDate(war.end)}</td>
-          <td>${war.reason}</td>
-          <td>${war.conclusion}</td>
+    function showInfoPanel(nodeName, info) {
+      const panel = document.getElementById('info-panel');
+      const content = document.getElementById('panel-content');
+      let html = '';
+
+      if (info.type === 'faction') {
+        const f = info.data;
+        html = `
+          <h3>${f.name}</h3>
+          <p><strong>Tag:</strong> ${f.tag}</p>
+          <p><strong>Leaderboard Position:</strong> #${f.leaderboard}</p>
+          <p><strong>Threat Level:</strong> ${f.threat}/10</p>
+          <p><strong>Description:</strong> ${f.description}</p>
+
+          ${f.members?.length ? `
+            <h4>Members:</h4>
+            <ul>${f.members.map(m => `<li>${m.name} - ${m.role}</li>`).join('')}</ul>
+          ` : ''}
+
+          ${f.resources?.length ? `
+            <h4>Resources:</h4>
+            <ul>${f.resources.map(r => `<li>${r}</li>`).join('')}</ul>
+          ` : ''}
         `;
-      });
-    }
-
-    /* -----------------------------
-      5. DOMAIN LOGIC - ALLIANCES
-    ------------------------------ */
-
-    function formatAllianceMembers(members) {
-      return members.join(', ');
-    }
-
-    function renderAlliances(alliances) {
-      renderTable('alliances-table', alliances, a => {
-        return `
-          <td>${a.name}</td>
-          <td>${a.type}</td>
-          <td>${formatAllianceMembers(a.members)}</td>
-          <td>${a.reason}</td>
+      } else if (info.type === 'war') {
+        const w = info.data;
+        const startDate = formatDateWithSuffix(w.start);
+        const endDate = w.end ? formatDateWithSuffix(w.end) : formatDateWithSuffix();
+        const conclusion = w.conclusion ?? 'Inconcluded';
+        html = `
+          <h3>War</h3>
+          <p><strong>Reason:</strong> ${w.reason}</p>
+          <p><strong>Status:</strong> ${w.status}</p>
+          <p><strong>Duration:</strong> ${startDate} - ${endDate}</p>
+          <p><strong>Conclusion:</strong> ${conclusion}</p>
         `;
-      });
+      } else if (info.type === 'alliance') {
+        const a = info.data;
+        html = `
+          <h3>${a.name}</h3>
+          <p><strong>Type:</strong> ${a.type}</p>
+          <p><strong>Reason:</strong> ${a.reason}</p>
+          <h4>Members:</h4>
+          <ul>${a.members.map(m => `<li>${m}</li>`).join('')}</ul>
+        `;
+      } else if (info.type === 'player') {
+        const p = info.data;
+        html = `
+          <h3>${p.playerName}</h3>
+          <p><strong>Role:</strong> ${p.role}</p>
+          <p><strong>Faction:</strong> ${p.faction}</p>
+        `;
+      } else if (info.type === 'aiw') {
+        const a = info.data;
+        html = `
+          <h3>AIW Connector</h3>
+          <p><strong>War node:</strong> ${a.war}</p>
+          <p><strong>Factions:</strong> ${a.factions.join(', ')}</p>
+        `;
+      } else {
+        html = `<h3>${nodeName}</h3><pre>${JSON.stringify(info.data || {}, null, 2)}</pre>`;
+      }
+
+      content.innerHTML = html;
+      panel.classList.remove('hidden');
     }
 
-    /* -----------------------------
-      6. MAIN ENTRY POINT
-    ------------------------------ */
+    function hideInfoPanel() {
+      document.getElementById('info-panel').classList.add('hidden');
+    }
 
     async function init() {
       try {
-        const data = await loadJSON('https://api.allorigins.win/raw?url=https://pastebin.com/raw/gewuYbma');
+        console.log('Starting initialization...');
+        globalData = await loadData();
+        console.log('Data loaded:', globalData);
+        if (!globalData) {
+          throw new Error('Could not load data');
+        }
 
-        renderWars(data.wars || []);
-        renderAlliances(data.alliances || []);
+        const elements = buildElements(globalData);
+        if (!elements.length) {
+          throw new Error('No graph elements generated');
+        }
 
+        initCytoscape(elements);
+
+        document.getElementById('close-panel').addEventListener('click', hideInfoPanel);
       } catch (err) {
-        console.error('Failed to initialize page:', err);
+        console.error('Failed to initialize map:', err);
+        document.getElementById('cy').innerHTML = `<p style="color: red;">Error loading map: ${err.message}</p>`;
       }
     }
 
     init();
-    </script>
-    <h2 class="section-header">Contributors</h2>
-    <ul>
-    <li>Crucifix (Maker)</li>
-    <li>Alvarez (Information + Leader of ZAIA Enterprise)</li>
-    </ul>
-  </body>
+  </script>
+</body>
+
 </html>
