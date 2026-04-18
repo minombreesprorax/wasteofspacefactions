@@ -1,2 +1,6 @@
 a.json
 schema.json
+update_relations.py
+faction_editor.py
+upload_to_firebase.py
+firebase-key.json

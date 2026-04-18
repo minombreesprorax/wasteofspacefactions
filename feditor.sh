@@ -1,0 +1,1 @@
+/home/Alec/Projects/WOSF/.venv/bin/python faction_editor.py

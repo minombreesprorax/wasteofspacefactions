@@ -14,29 +14,139 @@
   <!-- Cytoscape -->
   <script src="https://unpkg.com/cytoscape@3.25.0/dist/cytoscape.min.js"></script>
 </head>
+<!-- Replace only the BODY content of your main page with this synced version -->
 
 <body>
+
   <div class="hero-flex">
     <h1 class="hero-title">Waste of Space Faction Chart</h1>
-    <p class="hero-subtitle">A chart of the factions in the Waste of Space universe, and their relationships to each
-      other.</p>
+    <p class="hero-subtitle">
+      A chart of the factions in the Waste of Space universe and their relationships.
+    </p>
   </div>
-  <h1>IMPORTANT: This is unfinished and mostly placeholders, do not take information realistically until it's finished
-    enough. If you are a faction leader, hit me up to add your faction and its information.</h1>
-  <p><a href="data.html">View raw data tables</a></p>
+
+  <div style="
+    background:#fff;
+    border:2px solid #333;
+    padding:20px;
+    margin:30px 0;
+    line-height:1.6;
+  ">
+    <strong>IMPORTANT:</strong>
+    This project is unfinished and contains placeholder information.
+    If you are a faction leader, contact me to add your faction.
+  </div>
+
+  <h2 class="section-header">Navigation</h2>
+
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+    margin-bottom:40px;
+  ">
+
+    <a href="data.html" style="
+      text-decoration:none;
+      color:#333;
+      background:#fff;
+      border:2px solid #333;
+      padding:20px;
+      display:block;
+    ">
+      <div style="
+        font-family:'Press Start 2P',sans-serif;
+        font-size:1em;
+        margin-bottom:15px;
+        line-height:1.5;
+      ">
+        RAW DATA
+      </div>
+
+      <div>
+        View factions, wars, alliances and statistics.
+      </div>
+    </a>
+
+    <div style="
+      background:#fff;
+      border:2px solid #333;
+      padding:20px;
+    ">
+      <div style="
+        font-family:'Press Start 2P',sans-serif;
+        font-size:1em;
+        margin-bottom:15px;
+        line-height:1.5;
+      ">
+        INTERACTIVE MAP
+      </div>
+
+      <div>
+        Click nodes to inspect factions, wars, players and alliances.
+      </div>
+    </div>
+
+  </div>
+
   <h2 class="section-header">Dynamic Map</h2>
+
   <div class="nodemap-container">
     <div id="cy"></div>
+
     <div id="info-panel" class="info-panel hidden">
       <button id="close-panel" class="close-btn">×</button>
       <div id="panel-content"></div>
     </div>
   </div>
+
+  <h2 class="section-header">Legend</h2>
+
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-bottom:40px;
+  ">
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      🟦 Faction
+    </div>
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      🟥 War
+    </div>
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      🟩 Alliance
+    </div>
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      🟨 Player
+    </div>
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      🟪 AIW Connector
+    </div>
+
+    <div style="background:#fff;border:2px solid #333;padding:15px;">
+      ⬛ Defunct/Ended (In general)
+    </div>
+
+  </div>
+
   <h2 class="section-header">Contributors</h2>
-  <ul>
-    <li>Crucifix (Maker)</li>
-    <li>Alvarez (Information + Leader of ZAIA Enterprise)</li>
-  </ul>
+
+  <div style="
+    background:#fff;
+    border:2px solid #333;
+    padding:20px;
+  ">
+    <ul style="margin-left:20px; line-height:1.8;">
+      <li>Crucifix - Maker</li>
+      <li>Alvarez - Information + Leader of ZAIA Enterprise</li>
+    </ul>
+  </div>
   <script>
     /* ========================================
        NODEMAP VISUALIZATION WITH CYTOSCAPE.JS
@@ -74,6 +184,8 @@
       data.factions.forEach(faction => {
         const id = faction.id;
 
+        const factionClasses = faction.status && faction.status !== "active" ? "faction defunct" : "faction";
+
         elements.push({
           data: {
             id,
@@ -82,34 +194,50 @@
             type: "faction",
             size: 32 + faction.threat * 3
           },
-          classes: "faction"
+          classes: factionClasses
         });
 
         nodeInfoMap[id] = { type: "faction", data: faction };
 
         const members = faction.members || [];
         members.forEach(member => {
-          const pid = `player_${member.name}_${id}`;
+          const cleanName = member.name.trim().toLowerCase();
 
-          elements.push({
-            data: {
-              id: pid,
-              label: member.name,
+          /* Shared player node by name */
+          const pid = `player_${cleanName}`;
+
+          /* Create node once */
+          if (!nodeInfoMap[pid]) {
+            elements.push({
+              data: {
+                id: pid,
+                label: member.name,
+                type: "player",
+                size: 16
+              },
+              classes: "player"
+            });
+
+            nodeInfoMap[pid] = {
               type: "player",
-              size: 16
-            },
-            classes: "player"
-          });
+              data: {
+                playerName: member.name,
+                roles: [],
+                factions: []
+              }
+            };
+          }
 
-          nodeInfoMap[pid] = {
-            type: "player",
-            data: {
-              playerName: member.name,
-              role: member.role,
-              faction: faction.name
-            }
-          };
+          /* Add role/faction if not already stored */
+          if (!nodeInfoMap[pid].data.roles.includes(member.role)) {
+            nodeInfoMap[pid].data.roles.push(member.role);
+          }
 
+          if (!nodeInfoMap[pid].data.factions.includes(faction.name)) {
+            nodeInfoMap[pid].data.factions.push(faction.name);
+          }
+
+          /* Link same player node to this faction */
           elements.push({
             data: {
               id: `edge_${edgeCount++}`,
@@ -122,6 +250,7 @@
 
       // wars
       data.wars.forEach(war => {
+        const warClasses = (war.status && war.status !== "active") || war.conclusion ? "war defunct" : "war";
         elements.push({
           data: {
             id: war.id,
@@ -129,7 +258,7 @@
             type: "war",
             size: 32
           },
-          classes: "war"
+          classes: warClasses
         });
 
         nodeInfoMap[war.id] = { type: "war", data: war };
@@ -175,6 +304,37 @@
               }
             });
           }
+        });
+        const relations = data.relations || [];
+        relations.forEach(rel => {
+          const [source, target, type] = rel;
+
+          /* Ignore neutral completely */
+          if (type === "neutral") return;
+
+          let className = "";
+
+          if (type === "ally") className = "rel-ally";
+          if (type === "enemy") className = "rel-enemy";
+          if (type === "sub-faction") className = "rel-sub";
+
+          if (!className) return;
+
+          elements.push({
+            data: {
+              id: `edge_${edgeCount++}`,
+              source: source,
+              target: target,
+              relation: type,
+
+              /* Lower spring tension only for relation lines */
+              elasticity: type === "ally" ? 0 :
+                type === "neutral" ? 0 :
+                  type === "enemy" ? 0 :
+                    0.5
+            },
+            classes: className
+          });
         });
       });
 
@@ -275,6 +435,18 @@
             }
           },
           {
+            selector: '.defunct',
+            style: {
+              'background-color': '#111111',
+              'border-color': '#ffffff',
+              'border-width': 1.5,
+              'color': '#ffffff',
+              'text-outline-color': '#000000',
+              'text-outline-width': 0.5,
+              'opacity': 0.65
+            }
+          },
+          {
             selector: '.aiw',
             style: {
               'background-color': '#a855f7',
@@ -286,7 +458,7 @@
             style: {
               'width': 2,
               'line-color': '#9ca3af',
-              'curve-style': 'bezier',
+              'curve-style': 'straight',
               'target-arrow-shape': 'none'
             }
           },
@@ -295,6 +467,39 @@
             style: {
               'border-color': '#ffffff',
               'border-width': 4
+            }
+          },
+          {
+            selector: '.rel-ally',
+            style: {
+              'line-color': '#10b981',
+              'width': 1.5,
+              'opacity': 0.35,
+              'curve-style': 'straight',
+              'target-arrow-shape': 'none',
+              'z-index': 1
+            }
+          },
+
+          /* Enemy = Red */
+          {
+            selector: '.rel-enemy',
+            style: {
+              'line-color': '#ef4444',
+              'width': 1.5,
+              'target-arrow-shape': 'none',
+              'curve-style': 'straight',
+            }
+          },
+
+          /* Sub-faction = Purple */
+          {
+            selector: '.rel-sub',
+            style: {
+              'line-color': '#a855f7',
+              'width': 3,
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'straight',
             }
           }
         ],
@@ -311,7 +516,10 @@
           attractiveForce: 5,
           gravity: 0.05,
           numIter: 500,
-          randomize: false
+          randomize: false,
+          edgeElasticity: function (edge) {
+            return edge.data('elasticity') || 1;
+          },
         }
       });
 
@@ -344,8 +552,8 @@
       const day = date.getDate();
       const suffix = (day % 10 === 1 && day !== 11) ? 'st'
         : (day % 10 === 2 && day !== 12) ? 'nd'
-        : (day % 10 === 3 && day !== 13) ? 'rd'
-        : 'th';
+          : (day % 10 === 3 && day !== 13) ? 'rd'
+            : 'th';
       return `${month} ${day}${suffix}, ${date.getFullYear()}`;
     }
 
@@ -396,11 +604,24 @@
         `;
       } else if (info.type === 'player') {
         const p = info.data;
-        html = `
-          <h3>${p.playerName}</h3>
-          <p><strong>Role:</strong> ${p.role}</p>
-          <p><strong>Faction:</strong> ${p.faction}</p>
-        `;
+
+        if (p.factions.length === 1) {
+          html = `
+      <h3>${p.playerName}</h3>
+      <p><strong>Faction:</strong> ${p.factions[0]}</p>
+      <p><strong>Role:</strong> ${p.roles[0] || 'Unknown'}</p>
+    `;
+        } else {
+          html = `
+      <h3>${p.playerName}</h3>
+      <p><strong>Roles:</strong></p>
+      <ul>
+        ${p.factions.map((faction, i) => `
+          <li>${faction} - ${p.roles[i] || 'Unknown'}</li>
+        `).join('')}
+      </ul>
+    `;
+        }
       } else if (info.type === 'aiw') {
         const a = info.data;
         html = `

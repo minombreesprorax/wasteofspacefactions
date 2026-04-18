@@ -1,167 +1,302 @@
-<!-- Waste of Space Faction Chart - Data Tables; Published on Github Pages. -->
+<!-- Waste of Space Faction Chart - Data -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Waste of Space Faction Chart - Data</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Tiny5&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/style.css">
-  </head>
-  <body>
-    <div class="hero-flex">
-      <h1 class="hero-title">Waste of Space Faction Chart - Data</h1>
-      <p class="hero-subtitle">Raw data tables for the factions in the Waste of Space universe.</p>
+<html lang="en">
+
+<head>
+  <title>Waste of Space Faction Chart - Data</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/style.css">
+
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: #fff;
+      border: 2px solid #333;
+      padding: 20px;
+    }
+
+    .card-title {
+      font-family: "Press Start 2P", sans-serif;
+      font-size: 1.1em;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .stat {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #555;
+      font-size: 0.95em;
+    }
+
+    .scroll-table {
+      overflow-x: auto;
+      border: 2px solid #333;
+      background: #fff;
+      margin-bottom: 40px;
+    }
+
+    .pill {
+      display: inline-block;
+      border: 1px solid #333;
+      padding: 4px 8px;
+      margin: 2px;
+      background: #f0f0f0;
+      font-size: 0.85em;
+    }
+
+    .warning-box {
+      background: #fff;
+      border: 2px solid #333;
+      padding: 20px;
+      margin: 30px 0;
+      line-height: 1.6;
+    }
+
+    .footer-list li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hero-flex">
+    <h1 class="hero-title">Waste of Space Faction Chart</h1>
+    <p class="hero-subtitle">
+      Raw Data Index - factions, wars, alliances and statistics.
+    </p>
+  </div>
+
+  <div class="warning-box">
+    <strong>IMPORTANT:</strong> This project is unfinished and contains placeholder data.
+    Treat information as in-development until finalized.
+  </div>
+
+  <h2 class="section-header">Overview</h2>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">FACTIONS</div>
+      <div class="stat" id="stat-factions">0</div>
+      <div class="muted">Registered organizations</div>
     </div>
-    <h1>IMPORTANT: This is unfinished and mostly placeholders, do not take information realistically until it's finished enough. If you are a faction leader, hit me up to add your faction and its information.</h1>
-    <h2 class="section-header">Ongoing Wars</h2>
+
+    <div class="card">
+      <div class="card-title">WARS</div>
+      <div class="stat" id="stat-wars">0</div>
+      <div class="muted">Historical + active conflicts</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ALLIANCES</div>
+      <div class="stat" id="stat-alliances">0</div>
+      <div class="muted">Diplomatic groups</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">PLAYERS</div>
+      <div class="stat" id="stat-members">0</div>
+      <div class="muted">Known members listed</div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Factions</h2>
+
+  <div class="scroll-table">
     <table>
       <thead>
         <tr>
-          <th>Factions involved (Parenthesis = Allied for the War)</th>
-          <th>War Status</th>
-          <th>Time</th>
+          <th>Name</th>
+          <th>Tag</th>
+          <th>Leaderboard</th>
+          <th>Threat</th>
+          <th>Members</th>
+        </tr>
+      </thead>
+      <tbody id="factions-table"></tbody>
+    </table>
+  </div>
+
+  <h2 class="section-header">Wars</h2>
+
+  <div class="scroll-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Sides</th>
+          <th>Status</th>
+          <th>Duration</th>
           <th>Reason</th>
           <th>Conclusion</th>
         </tr>
       </thead>
-      <tbody id="wars-table">
-      </tbody>
+      <tbody id="wars-table"></tbody>
     </table>
-    <h2 class="section-header">Alliances</h2>
+  </div>
+
+  <h2 class="section-header">Alliances</h2>
+
+  <div class="scroll-table">
     <table>
       <thead>
         <tr>
-          <th>Alliance Name</th>
+          <th>Name</th>
           <th>Type</th>
           <th>Members</th>
           <th>Reason</th>
         </tr>
       </thead>
-      <tbody id="alliances-table">
-      </tbody>
+      <tbody id="alliances-table"></tbody>
     </table>
-    <h2 class="section-header">Contributors</h2>
-    <ul>
-    <li>Crucifix (Maker)</li>
-    <li>Alvarez (Information + Leader of ZAIA Enterprise)</li>
+  </div>
+
+  <h2 class="section-header">Contributors</h2>
+
+  <div class="card">
+    <ul class="footer-list">
+      <li>Crucifix - Maker</li>
+      <li>Alvarez - Information + Leader of ZAIA Enterprise</li>
     </ul>
-    <script>
-    /* -----------------------------
-      1. DATA LOADER (generic)
-    ------------------------------ */
+  </div>
+
+  <script>
     async function loadJSON() {
-      const response = await fetch(
-        'https://waste-of-space-faction-chart-default-rtdb.firebaseio.com/.json'
-      );
+      try {
+        const response = await fetch(
+          'https://waste-of-space-faction-chart-default-rtdb.firebaseio.com/.json'
+        );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error("Remote failed");
+
+        return await response.json();
+
+      } catch {
+        const local = await fetch('static/a.json');
+        return await local.json();
       }
-
-      return await response.json();
     }
 
-    /* -----------------------------
-      2. FORMATTERS (pure functions)
-    ------------------------------ */
-
-    // AIW + faction formatting
-    function formatFactions(factions) {
-      return factions.map(group => {
-        if (Array.isArray(group)) {
-          return `(${group.join(', ')})`;
-        }
-        return group;
-      }).join(', ');
-    }
-
-    // Date handler (centralized so you don't repeat it everywhere)
-    function formatEndDate(endValue) {
-      if (endValue !== '!NOW') return endValue;
-
-      const now = new Date();
-      return now.toLocaleDateString('en-US', {
+    function nowDate() {
+      return new Date().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-      }) + ' (Ongoing)';
-    }
-
-    /* -----------------------------
-      3. GENERIC TABLE RENDERER
-    ------------------------------ */
-
-    function renderTable(tbodyId, rows, rowMapper) {
-      const tbody = document.getElementById(tbodyId);
-      tbody.innerHTML = ''; // prevents duplicates on reload
-
-      const fragment = document.createDocumentFragment();
-
-      rows.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = rowMapper(item);
-        fragment.appendChild(tr);
-      });
-
-      tbody.appendChild(fragment);
-    }
-
-    /* -----------------------------
-      4. DOMAIN LOGIC - WARS
-    ------------------------------ */
-
-    function renderWars(wars) {
-      renderTable('wars-table', wars, war => {
-        return `
-          <td>${formatFactions(war.factions)}</td>
-          <td>${war.status}</td>
-          <td>${war.start} - ${formatEndDate(war.end)}</td>
-          <td>${war.reason}</td>
-          <td>${war.conclusion}</td>
-        `;
       });
     }
 
-    /* -----------------------------
-      5. DOMAIN LOGIC - ALLIANCES
-    ------------------------------ */
-
-    function formatAllianceMembers(members) {
-      return members.join(', ');
+    function formatEndDate(end) {
+      if (!end || end === '!NOW') return nowDate() + ' (Ongoing)';
+      return end;
     }
 
-    function renderAlliances(alliances) {
-      renderTable('alliances-table', alliances, a => {
-        return `
-          <td>${a.name}</td>
-          <td>${a.type}</td>
-          <td>${formatAllianceMembers(a.members)}</td>
-          <td>${a.reason}</td>
-        `;
+    function formatSides(sides = []) {
+      return sides.map(side => {
+        if (Array.isArray(side)) {
+          return '(' + side.join(', ') + ')';
+        }
+        return side;
+      }).join(' vs ');
+    }
+
+    function renderStats(data) {
+      const factions = data.factions || [];
+      const wars = data.wars || [];
+      const alliances = data.alliances || [];
+
+      let members = 0;
+
+      factions.forEach(f => {
+        members += (f.members || []).length;
       });
+
+      document.getElementById("stat-factions").textContent = factions.length;
+      document.getElementById("stat-wars").textContent = wars.length;
+      document.getElementById("stat-alliances").textContent = alliances.length;
+      document.getElementById("stat-members").textContent = members;
     }
 
-    /* -----------------------------
-      6. MAIN ENTRY POINT
-    ------------------------------ */
+    function renderFactions(factions = []) {
+      const tbody = document.getElementById("factions-table");
+
+      tbody.innerHTML = factions.map(f => `
+        <tr>
+          <td>${f.name || ''}</td>
+          <td>${f.tag || ''}</td>
+          <td>#${f.leaderboard ?? '-'}</td>
+          <td>${f.threat ?? 0}/10</td>
+          <td>${(f.members || []).length}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderWars(wars = []) {
+      const tbody = document.getElementById("wars-table");
+
+      tbody.innerHTML = wars.map(w => `
+        <tr>
+          <td>${formatSides(w.sides)}</td>
+          <td>${w.status || ''}</td>
+          <td>${w.start || ''} - ${formatEndDate(w.end)}</td>
+          <td>${w.reason || ''}</td>
+          <td>${w.conclusion || 'Undecided'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAlliances(alliances = []) {
+      const tbody = document.getElementById("alliances-table");
+
+      tbody.innerHTML = alliances.map(a => `
+        <tr>
+          <td>${a.name || ''}</td>
+          <td>${a.type || ''}</td>
+          <td>${(a.members || []).join(', ')}</td>
+          <td>${a.reason || ''}</td>
+        </tr>
+      `).join('');
+    }
 
     async function init() {
       try {
-        const data = await loadJSON('https://api.allorigins.win/raw?url=https://pastebin.com/raw/gewuYbma');
+        const data = await loadJSON();
 
-        renderWars(data.wars || []);
-        renderAlliances(data.alliances || []);
+        renderStats(data);
+        renderFactions(data.factions);
+        renderWars(data.wars);
+        renderAlliances(data.alliances);
 
       } catch (err) {
-        console.error('Failed to initialize page:', err);
+        document.body.innerHTML += `
+          <div class="warning-box">
+            Failed to load data.
+          </div>
+        `;
+        console.error(err);
       }
     }
 
     init();
-    </script>
-  </body>
+  </script>
+
+</body>
+
 </html>
