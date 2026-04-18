@@ -2,22 +2,23 @@
 My understanding (Crucifix) of Waste of Space current factions (feel free to correct me (and please do))
 
 ## Added factions
-- [ ] ZAIA enterprise
+- [x] ZAIA enterprise
 - [ ] SDA
 - [ ] Eclipse corporation
 - [ ] Arasaka corporation
 - [ ] TGF
 - [ ] Among us Industries
 - [ ] The covenant
-- [ ] Espace
+- [x] Espace
 - [ ] Archangel Systems
 - [ ] Void Co.
 - [ ] Aether corporation
+- [ ] SCV
 
 ## Added content
-- [ ] War table
-- [ ] Alliance table
-- [ ] Dynamic faction map
+- [x] War table
+- [x] Alliance table
+- [x] Dynamic faction map
 - [ ] Public spaces
 - [ ] Making it actually look good.
 
